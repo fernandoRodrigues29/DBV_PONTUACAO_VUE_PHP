@@ -115,20 +115,28 @@
 
 <div id="app">
 <!-- Tela de Listagem -->
-        <listagem-unidades></listagem-unidades>
+        <listagem-unidades
+        v-if=!telaForm
+        @editar="abrirFormulario($event)" 
+        @excluir="confirmarExclusao($event)" 
+        :listar="listarUnidades"></listagem-unidades>
         <!-- Tela de Formulário -->
-
-
-
-
+        <form-unidade
+            v-if=telaForm
+            :unidade="unidadeFormData"
+            :salvando="salvando"
+            @voltar="voltar($event)"
+            @salvar="salvar($event)"
+        ></form-unidade>
+       
 <transition name="slide" mode="out-in">
 </transition>
     <!-- Alertas Globais -->
     <transition name="fade">
-        <div v-if="alerta.mensagem" 
+        <div v-if="false" 
              :class="'alert alert-' + alerta.tipo + ' alert-dismissible fade show'"
              style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">
-            {{ alerta.mensagem }}
+                VARIAVEL
             <button type="button" class="close" @click="fecharAlerta">
                 <span>&times;</span>
             </button>
@@ -147,101 +155,110 @@
 <script type="module">
 
 import Testando from '/application/views/components/Testando.js';
+import ListagemUnidades from '/application/views/unidades/Listagem_unidades.js';
+import formUnidade from '/application/views/unidades/Formulario_comp.js';
 
+// import Componente_alfa from '/application/views/unidades/Componente_alfa.vue';
 const { createApp } = Vue;
 //componente de listar unidade
-const ListagemUnidades = {
-    props:[],
-    data(){
-        return {
-            name:"Listar Unidades"
-        }
-    },
-    methods: {},
-    template:`
-        <div class="container mt-4">
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h1><i class="fas fa-users"></i> Unidades</h1>
-                </div>
-                <div class="col-md-6 text-right">
-                    <button class="btn btn-success">
-                        <i class="fas fa-plus"></i> Adicionar Unidade
-                    </button>
-                </div>
-            </div>
-            <div class="card mb-12">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                             <input 
-                                type="text" 
-                                class="form-control" 
-                                placeholder="Buscar por nome...">
-                        </div>
-                        <div class="col-md-3">
-                            <button  class="btn btn-outline-secondary btn-block">
-                                <i class="fas fa-eraser"></i> Limpar
-                            </button>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-            //lista
-            <div class="row">
-                 <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card card-hover h-100">
-                        <div class="card-body">
-                             <h5 class="card-title">
-                                <i class="fas fa-user-circle text-primary"></i> 
-                                        VARIAVEL
-                            </h5>
-                            <p class="card-text">
-                                <span class="badge badge-primary badge-custom">
-                                    <i class="fas fa-flag"></i> VARIAVEL
-                                </span>
-                                        <span class="badge badge-info badge-custom ml-2">
-                                            VARIAVEL
-                                        </span>
-                            </p>
-                            <p class="card-text text-muted mb-0">
-                                <small><strong>Classe:</strong> VARIAVEL</small>
-                            </p>
-                        </div>
-                        <div class="card-footer bg-white">
-                            <button 
-                                    class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i> Editar
-                                    </button>
-                                    <button 
-                                        class="btn btn-sm btn-danger ml-2">
-                                        <i class="fas fa-trash"></i> Excluir
-                            </button>
-                        </div>
-                    </div>        
-                 </div>
-            </div>
-    </div>
-    `
-};
 // App Principal
 createApp({
     components: {
         'listagem-unidades': ListagemUnidades,
+        'form-unidade': formUnidade,
         'testando': Testando
     },
     data() {
         return {
-            nome: ' '
+            nome: ' ',
+            listarUnidades:[],
+            unidadeFormData:'',
+            salvando:false,
+            telaForm:false
         };
     },
     methods: {
         async carregarDados() {
-           
+           try {
+                const respUnidades = await fetch('<?= site_url('unidades/listar_json') ?>');
+                this.listarUnidades = await respUnidades.json();
+           } catch (error) {
+            console.error('Error [carregar dados]', error);
+           }
         },
+        abrirFormulario(unidade=null){
+            if(unidade){
+                this.unidadeFormData = {...unidade};
+            }
+            this.telaForm = true;
+        },
+        voltar(){
+            this.telaForm = false;
+        },
+        async salvar(dados, origem=null){
+           
+          const url = dados.id_unidade ? '<?= site_url('unidades/atualizar') ?>' 
+          : '<?= site_url('unidades/inserir') ?>';
+          
+          const verbo = dados.id_unidade ? 'PUT' : 'POST';
+            try {
+                        '<?= site_url('unidades/atualizar') ?>';
+                    const resp = await fetch(url,{
+                        method: verbo,
+                        headers:{
+                            'Content-Type':'application/json'
+                        },
+                        body: JSON.stringify(dados)
+                    });
+
+                    const resultado = await resp.json();
+                        if(resultado.sucesso){
+                            console.log('sucesso:',resultado);
+                            alert(resultado.mensagem);
+                            this.carregarDados();
+                                this.voltar();
+                        }else{
+                            alert(resultado.mensagem);
+                            this.voltar();
+                        }
+
+
+            } catch (error) {
+                console.error('error:',error);
+            }
+        },
+        async confirmarExclusao(unidade){
+            if(unidade){
+                if(confirm(`Tem certeza que dejeza excluir ${unidade.nome_unidade}`)){
+                    try {
+                        const url = '<?= site_url('unidades/deletar') ?>';
+                        const resp = await fetch(url,{
+                        method: 'DELETE',
+                        headers:{
+                            'Content-Type':'application/json'
+                        },
+                        body: JSON.stringify(unidade)
+                    });
+                        const resultado = await resp.json();
+                        console.info('dados enviados',resultado);
+                        if(resultado.sucesso){
+                            this.carregarDados();
+                            alert(resultado.mensagem);
+                        }else{
+                            alert(resultado.mensagem);
+                        }
+                    } catch (error) {
+                        console.error('[error]',error);
+                        alert('error');
+                    }
+                }
+            }
+        }
+        
+       
     },
     mounted() {
+        this.carregarDados();
     }
 }).mount('#app');
 </script>
