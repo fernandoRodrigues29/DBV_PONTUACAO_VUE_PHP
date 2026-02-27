@@ -84,7 +84,7 @@ props: ['unidade', 'salvando'],
                                             <i class="fas fa-user"></i> Classe Base *
                                         </label>
                                         <input 
-                                            id="nome_unidade"
+                                            id="classe_base"
                                             v-model="form.classe_base" 
                                             type="text" 
                                             class="form-control form-control-lg" 

@@ -116,13 +116,13 @@
 <div id="app">
 <!-- Tela de Listagem -->
         <listagem-unidades
-        v-if=!telaForm
+        v-if="!telaForm"
         @editar="abrirFormulario($event)" 
         @excluir="confirmarExclusao($event)" 
         :listar="listarUnidades"></listagem-unidades>
         <!-- Tela de Formulário -->
         <form-unidade
-            v-if=telaForm
+            v-if="telaForm"
             :unidade="unidadeFormData"
             :salvando="salvando"
             @voltar="voltar($event)"
@@ -142,6 +142,7 @@
             </button>
         </div>
     </transition>
+
 </div>
 
 <footer class="bg-dark text-white text-center py-3 mt-5">
@@ -152,6 +153,11 @@
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
+
+<!-- Notyf CSS + JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
 <script type="module">
 
 import Testando from '/application/views/components/Testando.js';
@@ -172,7 +178,7 @@ createApp({
         return {
             nome: ' ',
             listarUnidades:[],
-            unidadeFormData:'',
+            unidadeFormData:{},
             salvando:false,
             telaForm:false
         };
@@ -202,7 +208,6 @@ createApp({
           
           const verbo = dados.id_unidade ? 'PUT' : 'POST';
             try {
-                        '<?= site_url('unidades/atualizar') ?>';
                     const resp = await fetch(url,{
                         method: verbo,
                         headers:{
@@ -213,17 +218,18 @@ createApp({
 
                     const resultado = await resp.json();
                         if(resultado.sucesso){
-                            console.log('sucesso:',resultado);
-                            alert(resultado.mensagem);
+                            // alert(resultado.mensagem);
+                            this.notyf.success(resultado.mensagem);
                             this.carregarDados();
                                 this.voltar();
                         }else{
-                            alert(resultado.mensagem);
+                            this.notyf.error(resultado.mensagem);
                             this.voltar();
                         }
 
 
             } catch (error) {
+                this.notyf.error('problema interno do sistema, analise os logs de erro');
                 console.error('error:',error);
             }
         },
@@ -243,13 +249,15 @@ createApp({
                         console.info('dados enviados',resultado);
                         if(resultado.sucesso){
                             this.carregarDados();
-                            alert(resultado.mensagem);
+
+                            this.notyf.success(resultado.mensagem);
                         }else{
                             alert(resultado.mensagem);
+                            this.notyf.error(resultado.mensagem);
                         }
                     } catch (error) {
                         console.error('[error]',error);
-                        alert('error');
+                        this.notyf.error(resultado.mensagem);
                     }
                 }
             }
@@ -259,7 +267,38 @@ createApp({
     },
     mounted() {
         this.carregarDados();
+    },
+    created(){
+        this.notyf = new Notyf({
+          duration: 4000,           // tempo em ms
+          ripple: true,             // efeito de ripple
+          dismissible: true,        // pode clicar para fechar
+          position: { x: 'right', y: 'top' }, // canto superior direito
+          
+          types: [
+            {
+              type: 'success',
+              background: '#28a745',
+              className: 'notyf__toast--success'
+            },
+            {
+              type: 'error',
+              background: '#dc3545',
+              className: 'notyf__toast--error'
+            },
+            {
+              type: 'info',
+              background: '#17a2b8',
+              icon: {
+                className: 'notyf__icon--info',
+                tagName: 'i',
+                text: 'i'  // ou use material icons, font-awesome, etc.
+              }
+            }
+          ]
+        });
     }
+
 }).mount('#app');
 </script>
 
