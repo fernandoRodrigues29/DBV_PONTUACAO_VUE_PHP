@@ -200,6 +200,19 @@ class Desbravadores extends CI_Controller{
 
     }
 
+    //gambiarra dleetar isso depois
+    public function criar_tabela(){
+        $this->db->query('CREATE TABLE cantinho {
+	id integer primary key AUTOINCREMENT,
+	id_dbv integer,
+	id_unit integer,
+	presenca char,
+	uniforme char,
+	atividades char,
+	hino char
+};');
+    }
+
     public function listar_json(){
          $arr = $this->Desbravador_model->get_all();
        

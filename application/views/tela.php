@@ -89,7 +89,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= site_url('pontuacao/lancar') ?>">
+                    <a class="nav-link" href="<?= site_url('cantinho') ?>">
                         <i class="fas fa-clipboard-check"></i> Cantinho da Unidade
                     </a>
                 </li>

@@ -1,5 +1,5 @@
 export default {
-props: ['unidade', 'salvando'],
+props: ['unidade', 'salvando','lista_classes'],
     data() {
         return {
             form: {
@@ -83,13 +83,14 @@ props: ['unidade', 'salvando'],
                                         <label for="nome_completo">
                                             <i class="fas fa-user"></i> Classe Base *
                                         </label>
-                                        <input 
-                                            id="classe_base"
+                                        <select 
                                             v-model="form.classe_base" 
-                                            type="text" 
                                             class="form-control form-control-lg" 
-                                            placeholder="Digite a classe base"
-                                            required>
+                                            requied>
+                                                <option :value="lc" v-for="(lc,index) in lista_classes" :key="index" >
+                                                    {{lc}}
+                                                </option>
+                                        </select>
                                      </div>
                                 </div>
                                 <hr class="my-4">

@@ -74,6 +74,38 @@
             left: 20px;
             z-index: 1000;
         }
+        /*switch toggle*/
+        .switch {
+            width: 60px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 30px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+            }
+
+            .switch.active {
+            background: #4CAF50;
+            }
+
+            .circle {
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+            }
+
+            .switch.active .circle {
+            transform: translateX(30px);
+            }
+        /*switch toggle*/
+
+
     </style>
 </head>
 <body>
@@ -89,13 +121,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= site_url('pontuacao/lancar') ?>">
+                    <a class="nav-link active" href="<?= site_url('cantinho') ?>">
                         <i class="fas fa-clipboard-check"></i> Cantinho da Unidade
                     </a>
                 </li>
                 <li class="nav-item active">
                     <a class="nav-link" href="<?= site_url('unidades') ?>">
-                        <i class="fas fa-flag"></i> Unidades
+                        <i class="fas fa-flag"></i> Unidades 
                     </a>
                 </li>
                 <li class="nav-item active">
@@ -115,20 +147,25 @@
 
 <div id="app">
 <!-- Tela de Listagem -->
-        <listagem-unidades
-        v-if="!telaForm"
-        @editar="abrirFormulario($event)" 
-        @excluir="confirmarExclusao($event)" 
-        :listar="listarUnidades"></listagem-unidades>
+ 
+        <listagem-cantinho
+            v-if="!telaForm"
+            @editar="abrirFormulario($event)" 
+            @excluir="confirmarExclusao($event)" 
+            :listar="listarCantinho">
+        </listagem-cantinho>
         <!-- Tela de Formulário -->
-        <form-unidade
+        <form-cantinho
             v-if="telaForm"
-            :unidade="unidadeFormData"
+            :unidade="formData"
+            :lista_unidades="listarUnidades"
             :salvando="salvando"
             :lista_classes="classe_base_lista"
+            :lista_desbravadores="listar_desbravadores"
             @voltar="voltar($event)"
             @salvar="salvar($event)"
-        ></form-unidade>
+        >
+        </form-cantinho>
        
 <transition name="slide" mode="out-in">
 </transition>
@@ -161,9 +198,8 @@
 
 <script type="module">
 
-import Testando from '/application/views/components/Testando.js';
-import ListagemUnidades from '/application/views/unidades/Listagem_unidades.js';
-import formUnidade from '/application/views/unidades/Formulario_comp.js';
+import ListagemCantinho from '/application/views/cantinho/Listagem_cantinho.js';
+import formCantinho from '/application/views/cantinho/Formulario_comp.js';
 
 // import Componente_alfa from '/application/views/unidades/Componente_alfa.vue';
 const { createApp } = Vue;
@@ -171,32 +207,46 @@ const { createApp } = Vue;
 // App Principal
 createApp({
     components: {
-        'listagem-unidades': ListagemUnidades,
-        'form-unidade': formUnidade,
-        'testando': Testando
+        'listagem-cantinho': ListagemCantinho,
+        'form-cantinho': formCantinho
     },
     data() {
         return {
             nome: ' ',
+            listarCantinho:[],
             listarUnidades:[],
-            unidadeFormData:{},
+            formData:{},
             salvando:false,
             telaForm:false,
-            classe_base_lista:['amigo/companheiro','pesquisador/pioneiro','guia/excurscionista']
+            classe_base_lista:['amigo/companheiro','pesquisador/pioneiro','guia/excurscionista'],
+            listar_desbravadores:[]
         };
     },
     methods: {
         async carregarDados() {
            try {
-                const respUnidades = await fetch('<?= site_url('unidades/listar_json') ?>');
-                this.listarUnidades = await respUnidades.json();
+                const resposta = await fetch('<?= site_url('cantinho/listar_json') ?>');
+                this.listarCantinho = await resposta.json();
+
+                const resposta2 = await fetch('<?= site_url('unidades/listar_json') ?>');
+                this.listarUnidades = await resposta2.json();
+
+                const respListarDbv = await fetch('<?=  site_url('desbravadores/api_dados') ?>?>');
+
+                const dadosFiltrados = await respListarDbv.json();
+                 this.listar_desbravadores  = dadosFiltrados.data.map(item => ({
+                        id_desbravador: item.id_desbravador,
+                        nome_completo: item.nome_completo,
+                        id_unidade: item.id_unidade
+                    }));
+
            } catch (error) {
             console.error('Error [carregar dados]', error);
            }
         },
-        abrirFormulario(unidade=null){
-            if(unidade){
-                this.unidadeFormData = {...unidade};
+        abrirFormulario(obj=null){
+            if(obj){
+                this.formData = {...obj};
             }
             this.telaForm = true;
         },
@@ -204,11 +254,13 @@ createApp({
             this.telaForm = false;
         },
         async salvar(dados, origem=null){
-           
-          const url = dados.id_unidade ? '<?= site_url('unidades/atualizar') ?>' 
-          : '<?= site_url('unidades/inserir') ?>';
+            console.log(dados);
+            
+            const url = dados.id_cantinho ? '<?= site_url('cantinho/atualizar') ?>' 
+               : '<?= site_url('cantinho/inserir') ?>';
           
-          const verbo = dados.id_unidade ? 'PUT' : 'POST';
+          const verbo = dados.id_cantinho ? 'PUT' : 'POST';
+            console.log(url,verbo);
             try {
                     const resp = await fetch(url,{
                         method: verbo,
@@ -235,17 +287,17 @@ createApp({
                 console.error('error:',error);
             }
         },
-        async confirmarExclusao(unidade){
-            if(unidade){
-                if(confirm(`Tem certeza que dejeza excluir ${unidade.nome_unidade}`)){
+        async confirmarExclusao(obj){
+            if(obj){
+                if(confirm(`Tem certeza que dejeza excluir #${obj.id}`)){
                     try {
-                        const url = '<?= site_url('unidades/deletar') ?>';
+                        const url = '<?= site_url('cantinho/deletar') ?>';
                         const resp = await fetch(url,{
                         method: 'DELETE',
                         headers:{
                             'Content-Type':'application/json'
                         },
-                        body: JSON.stringify(unidade)
+                        body: JSON.stringify(obj)
                     });
                         const resultado = await resp.json();
                         console.info('dados enviados',resultado);

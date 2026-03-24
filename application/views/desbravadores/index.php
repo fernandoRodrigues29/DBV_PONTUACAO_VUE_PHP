@@ -93,7 +93,7 @@
                         <i class="fas fa-clipboard-check"></i> Cantinho da Unidade
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item active">
                     <a class="nav-link" href="<?= site_url('unidades') ?>">
                         <i class="fas fa-flag"></i> Unidades
                     </a>
