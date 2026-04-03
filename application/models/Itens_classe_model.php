@@ -1,7 +1,7 @@
 <?php
-class Classes_model extends CI_Model {
+class Itens_classe_model extends CI_Model {
 
-    protected $table = 'classe';
+    protected $table = 'itens_classe';
     protected $primaryKey = 'id';
 
     public function __construct()
@@ -10,8 +10,9 @@ class Classes_model extends CI_Model {
         $this->load->database();
     }
  
-    public function get_all(): array {
-        return $this->db->get($this->table)->result();
+    public function get_all($classe = 1): array {
+        
+        return $this->db->where('classe_id',$classe)->get($this->table)->result();
 
     }
 
