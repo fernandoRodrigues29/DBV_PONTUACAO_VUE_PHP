@@ -1,22 +1,20 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Cantinho extends CI_Controller{
+class Classes extends CI_Controller{
 
  public function __construct() {
         parent::__construct();
-        $this->load->model('Cantinho_model');
+        $this->load->model('Classes_model');
         $this->load->library('form_validation');
     }
 
     public function index() {
-            $data['pontuacao'] = $this->Cantinho_model->get_all();
-            $data['title'] = 'Gerenciar Cantinho';
-            $this->load->view('cantinho/index', $data);
+           $this->listar_json();
     }
     
     public function listar_json(){
-         $arr = $this->Cantinho_model->get_all();
+         $arr = $this->Classes_model->get_all();
             $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode([
@@ -88,7 +86,7 @@ class Cantinho extends CI_Controller{
             ];
 
             //enviar para a model
-            $this->Cantinho_model->insert($data);
+            $this->Classes_model->insert($data);
             //output resultado
             $msg='Dados processados com sucesso';
             $this->enviarMsgSucesso($msg);
@@ -173,7 +171,7 @@ class Cantinho extends CI_Controller{
                         }
 
 
-                    $retorno = $this->Cantinho_model->update($id_cantinho, $data);
+                    $retorno = $this->Classes_model->update($id_cantinho, $data);
                         $resposta = ['sucesso'=>true,'mensagem'=>'Atualizado com sucesso'];
                             if(!$retorno){
 
@@ -210,7 +208,7 @@ class Cantinho extends CI_Controller{
                         }
                         
                         $id = intval($dados['id']);
-                        $retorno = $this->Cantinho_model->delete($id);
+                        $retorno = $this->Classes_model->delete($id);
 
                             $resposta = ['sucesso'=>true,'mensagem'=>'excluido com sucesso'];
                             

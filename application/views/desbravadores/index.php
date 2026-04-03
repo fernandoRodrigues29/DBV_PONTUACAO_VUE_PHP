@@ -77,8 +77,8 @@
     </style>
 </head>
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+<?php require_once('./application/views/componentes/barra_de_navegacao.php'); ?>
+<!-- <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
     <div class="container">
         <a class="navbar-brand" href="<?= site_url('pontuacao/lancar') ?>">
             <i class="fas fa-campground"></i> Sistema Cantinho da Unidade
@@ -111,7 +111,7 @@
             </ul>
         </div>
     </div>
-</nav>
+</nav> -->
 
 <div id="app">
 
