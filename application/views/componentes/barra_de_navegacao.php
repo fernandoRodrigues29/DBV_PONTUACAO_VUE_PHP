@@ -23,8 +23,8 @@
                         <i class="fas fa-users"></i> Desbravadores
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= site_url('pontuacao/ranking') ?>">
+                <li class="nav-item active">
+                    <a class="nav-link" href="<?= site_url('progresso') ?>">
                         <i class="fas fa-trophy"></i> Ranking Geral
                     </a>
                 </li>
