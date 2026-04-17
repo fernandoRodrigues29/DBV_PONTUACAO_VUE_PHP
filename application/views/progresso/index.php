@@ -242,10 +242,10 @@ createApp({
         async salvar(dados, origem=null){
             console.log(dados);
             
-            const url = dados.id_cantinho ? '<?= site_url('cantinho/atualizar') ?>' 
-               : '<?= site_url('cantinho/inserir') ?>';
+            const url = dados.id_cantinho ? '<?= site_url('progresso/atualizar') ?>' 
+               : '<?= site_url('progresso/inserir') ?>';
           
-          const verbo = dados.id_cantinho ? 'PUT' : 'POST';
+          const verbo = dados.id_processo ? 'PUT' : 'POST';
             console.log(url,verbo);
             try {
                     const resp = await fetch(url,{

@@ -30,7 +30,27 @@ class Progresso_model extends CI_Model {
 
     public function insert(array $data): ?int 
     {
-        $sucesso = $this->db->insert($this->table, $data);
+        
+        $lista_itens_marcados = $data['itens_marcados'] ?? [];
+        unset($data['itens_marcados']);
+
+        if(empty($lista_itens_marcados) || !is_array($lista_itens_marcados)){
+            log_message('error','Nenhum item marcado foi enviado');
+                return null;
+        }
+
+        $insert_data = [];
+
+        foreach ($lista_itens_marcados as $linha) {
+            $insert_data[] = [
+                'id_classe'=>$data['id_classe'],
+                'id_dbv'=>$data['id_dbv'],
+                'id_item'=>$linha
+            ];
+        }
+
+        $sucesso = $this->db->insert_batch($this->table, $insert_data);
+
             if(!$sucesso){
                 log_message('error',json_encode($this->db->error()));
                     return null;

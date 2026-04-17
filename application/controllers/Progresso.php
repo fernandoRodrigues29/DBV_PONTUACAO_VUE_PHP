@@ -55,20 +55,25 @@ class Progresso extends CI_Controller{
                 $dados = json_decode($json, true);
            
             //validar JSON
-          
+            
+            // echo "<pre>";
+            // print_r($dados);
+            // echo "</pre>";
+            // exit;
+            
             if(json_last_error() !== JSON_ERROR_NONE){
                 throw new Exception('JSON inválido enviado pelo cliente', 400);
             }
             //validar campos obrigatórios
-            if(!isset($dados['id_dbv'])){
+            if(!isset($dados['desbravador']) && !isset($dados['classe_id'])){
                 throw new Exception('Campos obrigatórios ausentes',422);
             }
             
             //validação
               $this->form_validation->set_data($dados);  
-              $this->form_validation->set_rules('id_classe', 'id da Classe', 'required|trim|min_length[1]|max_length[100]');
-              $this->form_validation->set_rules('id_dbv', 'id do desbravador', 'required|trim|min_length[1]|max_length[100]');
-              $this->form_validation->set_rules('id_item', 'id do item', 'trim|min_length[1]|max_length[100]');
+              $this->form_validation->set_rules('desbravador', 'id do Desbravador', 'required|trim|min_length[1]|max_length[100]');
+              $this->form_validation->set_rules('classe_id', 'id da classe', 'required|trim|min_length[1]|max_length[100]');
+              $this->form_validation->set_rules('itens_marcados[]', 'itens marcados', 'required');
                 
               if(!$this->form_validation->run()){
                    log_message('error', '[progresso][inserir] error ao validar');
@@ -77,15 +82,15 @@ class Progresso extends CI_Controller{
                 
             //sanitização
             
-            $id_classe = isset($dados['id_classe']) ? intval($dados['id_classe']) : null;
-            $id_dbv = isset($dados['id_dbv']) ? intval($dados['id_dbv']) : null;
-            $id_item = isset($dados['id_item']) ? intval($dados['id_item']) : null;
+            $id_classe = isset($dados['classe_id']) ? intval($dados['classe_id']) : null;
+            $id_desbravador = isset($dados['desbravador']) ? intval($dados['desbravador']) : null;
+            $itens_marcados = isset($dados['itens_marcados']) ? $dados['itens_marcados'] : null;
             
             $data = [
                 'id_progresso' => NULL,
                 'id_classe'    => $id_classe,
-                'id_dbv'    => $id_dbv,
-                'id_item'    => $id_item,
+                'id_dbv'    => $id_desbravador,
+                'itens_marcados'    => $itens_marcados,
             ];
             
             //enviar para a model

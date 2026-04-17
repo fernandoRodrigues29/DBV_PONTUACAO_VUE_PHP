@@ -3,52 +3,19 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
     data() {
         return {
             form: {
-                id_cantinho: null,
-                desbravador: '',
-                presenca: false,
-                hino: false,
-                uniforme: false,
-                atividades: false,
+                desbravador: 0,
+                classe_id: 0,
+                // itens_marcados:[]
             },
             obj:null,
-                openSections: [false, false, false,false, false, false, false, false], // controla quais seções estão abertas
-                    sections2:[
-                        {
-                            title:"",
-                            items:[
-                                {
-                                    text:"", checked:false
-                                }
-                            ]
-                        }
-                    ],
+                // openSections: [false, false, false,false, false, false, false, false], // controla quais seções estão abertas
+                openSections: [], // controla quais seções estão abertas
                     sections: [
                         {
-                            title: "Planejamento do Projeto",
+                            title: "",
+                            sigla: "",
                             items: [
-                                { text: "Definir escopo e objetivos", checked: false },
-                                { text: "Criar wireframes / protótipo", checked: false },
-                                { text: "Listar tecnologias (HTML, CSS, JS, Bootstrap)", checked: false },
-                                { text: "Montar backlog de tarefas", checked: false }
-                            ]
-                        },
-                        {
-                            title: "Desenvolvimento Frontend",
-                            items: [
-                                { text: "Configurar ambiente (VS Code + extensões)", checked: false },
-                                { text: "Criar estrutura de pastas do projeto", checked: false },
-                                { text: "Implementar layout com Bootstrap", checked: false },
-                                { text: "Criar componentes reutilizáveis", checked: false },
-                                { text: "Adicionar interatividade com JavaScript", checked: false }
-                            ]
-                        },
-                        {
-                            title: "Testes & Deploy",
-                            items: [
-                                { text: "Testar responsividade em diferentes dispositivos", checked: false },
-                                { text: "Verificar acessibilidade (contraste, foco)", checked: false },
-                                { text: "Otimizar performance (imagens, JS)", checked: false },
-                                { text: "Fazer deploy (GitHub Pages / Vercel)", checked: false }
+                                { text: "", checked: false },
                             ]
                         }
                     ],
@@ -61,7 +28,7 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
         tituloTela() {
             return this.modoEdicao ? 'Editar Unidade' : 'Adicionar Unidade';
         },
-                        // Calcula o total de itens
+                // Calcula o total de itens
                 totalItems() {
                     return this.sections.reduce((total, section) => total + section.items.length, 0);
                 },
@@ -83,70 +50,44 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
             console.log('lista itens classe',this.lista_itens_classe)
         },
         ajustarDadosSecao(){
-              /*
-               classe_id:1
-               grupo:"GERAL"
-               id:1
-               item:"TER 10 ANOS"
-              */
-            //  console.log(this.lista_itens_classe.data);  
+             const mapaGrupos = new Map([
+                        ['DE', 'Desenvolvimento_espiritual'],
+                        ['SO', 'Servindo_a_outros'],
+                        ['SAF', 'Saude_aptidao_fisica'],
+                        ['EN', 'Estudo_da_natureza'],
+                        ['AA', 'Arte_de_acampar'],
+                        ['DA', 'Desenvolvendo_a_amizade'],
+                        ['OL', 'Organizacao_e_lideranca'],
+                        ['EV', 'Estilo_de_vida']
+                    ]);
               const arr_agrupados = this.lista_itens_classe.data.reduce((acc,item) =>{
-                let grupo = item.grupo;
+                     
+                    const nomeGrupo = mapaGrupos.get(item.grupo) ?? item.grupo;
+                    const sigla = item.grupo;
 
-                if(grupo == 'DE'){
-                    grupo = 'Desenvolvimento_espiritual';
-                }
+                       
+                        if(!acc[nomeGrupo]){
+                            acc[nomeGrupo] = {
+                                sigla: sigla,
+                                items: []
+                            };
+                        }
 
-                if(grupo == 'SO'){
-                    grupo = 'Servindo_a_outros';
-                }
-
-                if(grupo == 'SAF'){
-                    grupo = 'Saude_aptidao_fisica';
-                }
-
-                if(grupo == 'EN'){
-                    grupo = 'Estudo_da_natureza';
-                }
-
-                if(grupo == 'AA'){
-                    grupo = 'Arte_de_acampar';
-                }
-                if(grupo == 'DA'){
-                    grupo = 'Desenvolvendo_a_amizade';
-                }
-                
-                if(grupo == 'OL'){
-                    grupo = 'Organizacao_e_lideranca';
-                }
-                
-                if(grupo == 'EV'){
-                    grupo = 'Estilo_de_vida';
-                }
-
-
-                if(!acc[grupo]){
-                    acc[grupo] = [];
-                }
-
-                acc[grupo].push(item);
-                return acc;
+                            acc[nomeGrupo].items.push(item);
+                                return acc;
               }, {});
-
-              console.log('resultado',arr_agrupados);  
-              console.log('-');  
+              
               const formatado = this.formatarArraySecction(arr_agrupados);
-              console.log('controle',formatado);
-              this.sections = [];
-              this.sections = formatado;
-
-
+                this.sections = [];
+                    this.sections = formatado;
         },
         formatarArraySecction(data){
             const arr = Object.keys(data).map(key => {
                 return {
                     title: key,
-                    items: data[key].map(item=>({
+                    sigla:data[key].sigla,
+                    items: data[key].items.map(item=>({
+                        id:item.id,
                         text: item.item,
                         checked: false
                     }))
@@ -165,9 +106,28 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
             return true;
         },
         salvarFormulario() {
-                    if (this.validarFormulario()) {
-                        this.$emit('salvar', { ...this.form });
+            // if (this.validarFormulario()) {
+            //     this.$emit('salvar', { ...this.form });
+            // }
+            // if(this.validarFormulario()) return;
+
+            const itensMarcados = [];
+
+            this.sections.forEach(section => {
+                section.items.forEach(item => {
+                    if(item.checked && item.id){
+                        itensMarcados.push(item.id);
                     }
+                });
+            });
+
+            const payload = {
+                ...this.form,
+                itens_marcados: itensMarcados
+            };
+
+            console.log('payload para salvar',payload);
+            this.$emit('salvar', payload);
         },
         cancelar() {
             if (confirm('Deseja realmente cancelar? As alterações serão perdidas.')) {
@@ -186,10 +146,6 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
         }
     },
     mounted() {
-        // if (this.unidade) {
-        //     this.obj = { ...this.unidade };
-        //     this.montarFormulario(this.obj);
-        // }
        this.ajustarDadosSecao()
     },
     watch: {
@@ -243,7 +199,50 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                             </div>
                         </div>
                     </div>
-
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="mb-0">Desbravador</h5>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="form-group">
+                                    <label for="nome_completo">
+                                        <i class="fas fa-user"></i> Desbravador *
+                                    </label>
+                                    <select 
+                                        class="form-control form-control-lg"
+                                        v-model="form.desbravador" 
+                                        requied>
+                                            <option value="1"> 
+                                              Desbravador teste 1  
+                                            </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="mb-0">classe</h5>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="form-group">
+                                    <label for="nome_completo">
+                                        <i class="fas fa-user"></i> classe *
+                                    </label>
+                                    <select 
+                                        class="form-control form-control-lg"
+                                        v-model="form.classe_id" 
+                                        requied>
+                                            <option value="1"> 
+                                              Classe teste 1  
+                                            </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Accordion -->
                     <div class="accordion accordion-flush shadow-sm" id="accordionChecklist">
 
@@ -288,8 +287,7 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                                         <button     
                                             type="submit" 
                                             class="btn btn-success btn-lg btn-block" 
-                                            :disabled="salvando"
-                                            @click="salvarFormulario">
+                                            :disabled="salvando">
                                             <span v-if="salvando" class="loading-spinner mr-2"></span>
                                             <i v-else class="fas fa-save"></i>
                                             {{ salvando ? 'Salvando...' : 'Salvar' }}
