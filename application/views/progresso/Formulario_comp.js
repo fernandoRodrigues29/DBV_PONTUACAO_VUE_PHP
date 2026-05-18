@@ -1,5 +1,5 @@
 export default {
-props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
+props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_itens_classe_marcados','id_desbravador_marcado','id_classe_marcado','lista_dbv_json','lista_classe_json'],
     data() {
         return {
             form: {
@@ -8,6 +8,7 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                 // itens_marcados:[]
             },
             obj:null,
+            origem:'editar',
                 // openSections: [false, false, false,false, false, false, false, false], // controla quais seções estão abertas
                 openSections: [], // controla quais seções estão abertas
                     sections: [
@@ -19,6 +20,7 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                             ]
                         }
                     ],
+                itensPreMarcados:[]    
         };
     },
     computed: {
@@ -47,10 +49,41 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
     },
     methods: {
         teste(){
-            console.log('lista itens classe',this.lista_itens_classe)
+            // let arrTeste = this.lista_itens_classe_marcados.data.map(t=>t.id_item);
+            // this.itensPreMarcados = arrTeste;
+            
+        },
+        preCarregar(){
+            console.log('precarregar: ',this.id_desbravador_marcado);
+            if(this.id_desbravador_marcado !== undefined){
+                this.form.desbravador = this.id_desbravador_marcado;
+            }
+
+            if(this.id_classe_marcado !== undefined){
+                this.form.classe_id = this.id_classe_marcado;
+            }
+
+            if(this.objeto.id_progresso !== undefined){
+                this.form.id_progresso = this.objeto.id_progresso;
+            }
+            
+            
+            if(Object.keys(this.objeto).length === 0 ){
+                this.origem = 'cadastar';
+            }
+            
         },
         ajustarDadosSecao(){
-             const mapaGrupos = new Map([
+             this.itensPreMarcados = null;
+                console.log('lista de itens premarcados:',this.lista_itens_classe_marcados);
+             if( Object.keys(this.lista_itens_classe_marcados).length > 0){
+                 console.log('debucagdo internamente os itens premarcado');
+                 let arrTeste = this.lista_itens_classe_marcados.data.map(t=>t.id_item);
+                 this.itensPreMarcados = arrTeste;
+             }
+
+             console.log('itens marcados setados no itenspremarcados',this.itensPreMarcados);
+            const mapaGrupos = new Map([
                         ['DE', 'Desenvolvimento_espiritual'],
                         ['SO', 'Servindo_a_outros'],
                         ['SAF', 'Saude_aptidao_fisica'],
@@ -60,8 +93,12 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                         ['OL', 'Organizacao_e_lideranca'],
                         ['EV', 'Estilo_de_vida']
                     ]);
-              const arr_agrupados = this.lista_itens_classe.data.reduce((acc,item) =>{
-                     
+                    console.log('dados vindo',this.lista_itens_classe.data);
+                    if(this.lista_itens_classe.data === null){
+                        throw new Error('a variavel não existe ou está vazia!');
+                    }
+              
+                    const arr_agrupados = this.lista_itens_classe.data.reduce((acc,item) =>{
                     const nomeGrupo = mapaGrupos.get(item.grupo) ?? item.grupo;
                     const sigla = item.grupo;
 
@@ -76,23 +113,43 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                             acc[nomeGrupo].items.push(item);
                                 return acc;
               }, {});
-              
-              const formatado = this.formatarArraySecction(arr_agrupados);
-                this.sections = [];
+              const formatado = this.formatarArraySecction(arr_agrupados,this.itensPreMarcados);
+               
+              this.sections = [];
                     this.sections = formatado;
         },
-        formatarArraySecction(data){
-            const arr = Object.keys(data).map(key => {
-                return {
-                    title: key,
-                    sigla:data[key].sigla,
-                    items: data[key].items.map(item=>({
-                        id:item.id,
-                        text: item.item,
-                        checked: false
-                    }))
-                };
-            });
+        formatarArraySecction(data,idsParaMarcar=[]){
+            /*ALTERAR ESSE AQUI!*/
+            console.log('idsparamarca:',idsParaMarcar);
+            let arr = {};
+            if(idsParaMarcar !== null ){
+                arr = Object.keys(data).map(key => {
+                    return {
+                        title: key,
+                        sigla:data[key].sigla,
+                        items: data[key].items.map(item=>({
+                            id:item.id,
+                            text: item.item,
+                            //checked: false
+                            checked: idsParaMarcar.includes(item.id)
+                        }))
+                    };
+                });
+
+            }else{
+                    arr = Object.keys(data).map(key => {
+                    return {
+                        title: key,
+                        sigla:data[key].sigla,
+                        items: data[key].items.map(item=>({
+                            id:item.id,
+                            text: item.item,
+                            checked: false
+                            // checked: idsParaMarcar.includes(item.id)
+                        }))
+                    };
+                });
+            }
             return arr; 
         },
         toggleSection(index) {
@@ -123,9 +180,10 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
 
             const payload = {
                 ...this.form,
-                itens_marcados: itensMarcados
+                itens_marcados: itensMarcados,
+                origem:this.origem
             };
-
+            
             console.log('payload para salvar',payload);
             this.$emit('salvar', payload);
         },
@@ -146,7 +204,8 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
         }
     },
     mounted() {
-       this.ajustarDadosSecao()
+      this.preCarregar();
+      this.ajustarDadosSecao()
     },
     watch: {
         // Opcional: logar progresso sempre que mudar
@@ -168,7 +227,7 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                     </h1>
                 </div>
             </div>
-
+            
             <!-- Formulário -->
             <div class="row justify-content-center">
                 <div class="col-md-8 col-lg-6">
@@ -181,7 +240,7 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                         <h1 class="header-title text-primary">✅ Checklist Progresso</h1>
                         <p class="lead text-muted">Feito com Vue 3 + Bootstrap 5</p>
                     </div>
-
+                    
                     <!-- Barra de Progresso -->
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
@@ -213,8 +272,9 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                                         class="form-control form-control-lg"
                                         v-model="form.desbravador" 
                                         requied>
-                                            <option value="1"> 
-                                              Desbravador teste 1  
+                                            <option value="" selected >Escolha o Desbravador</option>
+                                            <option  v-for="(dbv,index) in lista_dbv_json.data" :key="index" :value="dbv.id_desbravador" > 
+                                                {{dbv.nome_completo}}
                                             </option>
                                     </select>
                                 </div>
@@ -235,14 +295,16 @@ props: ['unidade', 'salvando','lista_desbravadores','lista_itens_classe'],
                                         class="form-control form-control-lg"
                                         v-model="form.classe_id" 
                                         requied>
-                                            <option value="1"> 
-                                              Classe teste 1  
+                                            <option value="" selected >Escolha a Classe</option>
+                                            <option v-for="(clss,index) in lista_classe_json.data" :value="clss.id"> 
+                                              {{clss.nome}}  
                                             </option>
                                     </select>
                                 </div>
                             </div>
                         </div>
                     </div>
+                  {{objeto}}
                     <!-- Accordion -->
                     <div class="accordion accordion-flush shadow-sm" id="accordionChecklist">
 

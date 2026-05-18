@@ -142,11 +142,16 @@
         <!-- Tela de Formulário -->
         <form-progresso
             v-if="telaForm"
-            :unidade="formData"
+            :objeto="formData"
             :lista_itens_classe="listarItensClasse"
+            :lista_itens_classe_marcados="listarItensClasseMarcados"
+            :id_desbravador_marcado=id_desbravador_marcado
+            :id_classe_marcado=id_classe_marcado
             :salvando="salvando"
             :lista_classes="classe_base_lista"
             :lista_desbravadores="listar_desbravadores"
+            :lista_dbv_json="lista_desbravadores_form"
+            :lista_classe_json="lista_classe_form"
             @voltar="voltar($event)"
             @salvar="salvar($event)"
         >
@@ -200,12 +205,18 @@ createApp({
             nome: ' ',
             listarProgresso:[],
             listarItensClasse:[],
+            listarItensClasseMarcados:[],
             listarUnidades:[],
             formData:{},
             salvando:false,
             telaForm:false,
             classe_base_lista:['amigo/companheiro','pesquisador/pioneiro','guia/excurscionista'],
-            listar_desbravadores:[]
+            listar_desbravadores:[],
+            lista_desbravadores_form:[],
+            lista_classe_form:[],
+            id_classe_marcado:0,
+            id_desbravador_marcado:0
+
         };
     },
     methods: {
@@ -214,12 +225,18 @@ createApp({
                 const resposta = await fetch('<?= site_url('progresso/listar_json') ?>');
                 this.listarProgresso = await resposta.json();
 
-                const resposta2 = await fetch('<?= site_url('progresso/listar_itens_classe_json') ?>');
+                const resposta2 = await fetch('<?= site_url('itens_classe/listar_json') ?>');
                 this.listarItensClasse = await resposta2.json();
 
-                const respListarDbv = await fetch('<?=  site_url('desbravadores/api_dados') ?>?>');
+                //listar classe form
+                 const respListarClasse = await fetch('<?=  site_url('classes/api_dados') ?>');
+                this.lista_classe_form = await respListarClasse.json();
+                
+                const respListarDbv = await fetch('<?=  site_url('desbravadores/api_dados') ?>');
+                //listar desbravadores form
+                const dadosFiltrados =  this.lista_desbravadores_form = await respListarDbv.json();
 
-                const dadosFiltrados = await respListarDbv.json();
+                // const dadosFiltrados = await respListarDbv.json();
                  this.listar_desbravadores  = dadosFiltrados.data.map(item => ({
                         id_desbravador: item.id_desbravador,
                         nome_completo: item.nome_completo,
@@ -230,23 +247,39 @@ createApp({
             console.error('Error [carregar dados]', error);
            }
         },
-        abrirFormulario(obj=null){
+        async carregarDadosFormParaPreencher(id){
+             const resposta_unico = await fetch('<?= site_url("progresso/listar_itens_marcados_por_dbv_json?id=") ?>'+id);
+                this.listarItensClasseMarcados = await resposta_unico.json();
+        },
+        async abrirFormulario(obj=null){
             if(obj){
+                console.log('o que esta sendo enviado ao clickar para aparece o form',obj);
+            
+                this.id_desbravador_marcado=obj.id_desbravador;
+                this.id_classe_marcado=obj.id_classe;
+
+                await this.carregarDadosFormParaPreencher(obj.id_desbravador); 
+                console.log('infos marcadas',this.listarItensClasseMarcados);   
                 this.formData = {...obj};
             }
+            console.log('como o objeto está sendo setado:',obj);
             this.telaForm = true;
         },
         voltar(){
             this.telaForm = false;
         },
         async salvar(dados, origem=null){
-            console.log(dados);
-            
-            const url = dados.id_cantinho ? '<?= site_url('progresso/atualizar') ?>' 
+            console.log('dados sendo enviado:',dados);
+            // debugger;
+            const url = dados.origem == 'editar' ? '<?= site_url('progresso/atualizar') ?>' 
                : '<?= site_url('progresso/inserir') ?>';
-          
-          const verbo = dados.id_processo ? 'PUT' : 'POST';
-            console.log(url,verbo);
+          console.log('url dados enviar',url);
+            // debugger;
+          const verbo = dados.origem == 'editar' ? 'PUT' : 'POST';
+            console.log(url);
+            console.log(verbo);
+            console.log(dados);
+            // debugger;
             try {
                     const resp = await fetch(url,{
                         method: verbo,
@@ -275,9 +308,9 @@ createApp({
         },
         async confirmarExclusao(obj){
             if(obj){
-                if(confirm(`Tem certeza que dejeza excluir #${obj.id}`)){
+                if(confirm(`Tem certeza que dejeza excluir #${obj.nome_desbravador}`)){
                     try {
-                        const url = '<?= site_url('cantinho/deletar') ?>';
+                        const url = '<?= site_url('progresso/deletar') ?>';
                         const resp = await fetch(url,{
                         method: 'DELETE',
                         headers:{

@@ -10,7 +10,7 @@ class Classes extends CI_Controller{
     }
 
     public function index() {
-           $this->listar_json();
+           $this->api_dados();
     }
     
     public function listar_json(){
@@ -22,6 +22,17 @@ class Classes extends CI_Controller{
                 'data'=>$arr
             ]));
     }
+ 
+    public function api_dados(){
+         $arr = $this->Classes_model->get_all();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }
+
     public function inserir(){
         header('Content-Type: application/json; charset=utf-8');
         header('X-Content-Type-Options: nosniff');

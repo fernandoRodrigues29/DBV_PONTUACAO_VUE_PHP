@@ -49,7 +49,7 @@ export default {
                 </div>
                 <div class="col-md-6 text-right">
                     <button class="btn btn-success" @click="$emit('editar')">
-                        <i class="fas fa-plus"></i> Adicionar x
+                        <i class="fas fa-plus"></i> Adicionar
                     </button>
                 </div>
             </div>
@@ -86,7 +86,7 @@ export default {
                             <div class="card-text">
                                 <div class="row">
                                         <span class="col-sm m-2 p-2 badge badge-primary badge-custom">
-                                            <i class="fas fa-flag"></i> Unidade <b> - </b>
+                                            <i class="fas fa-flag"></i> {{cantinhoItem.classe}} 
                                         </span>
                                 </div>
                             </div>

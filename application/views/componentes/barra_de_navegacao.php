@@ -25,7 +25,7 @@
                 </li>
                 <li class="nav-item active">
                     <a class="nav-link" href="<?= site_url('progresso') ?>">
-                        <i class="fas fa-trophy"></i> Ranking Geral
+                        <i class="fas fa-trophy"></i> Progresso
                     </a>
                 </li>
             </ul>
