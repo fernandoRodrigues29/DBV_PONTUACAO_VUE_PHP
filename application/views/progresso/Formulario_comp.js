@@ -1,15 +1,51 @@
 export default {
-props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_itens_classe_marcados','id_desbravador_marcado','id_classe_marcado','lista_dbv_json','lista_classe_json'],
+props: {
+    objeto:{
+    type:Object,
+    default:()=>({})
+}, 
+salvando:{
+    type:Boolean,
+    default:false
+},
+lista_desbravadores:{
+    type:Array,
+    default: () => []
+},
+lista_itens_classe:{
+    type:Object,
+    default: () => ({data:[]})
+},
+lista_itens_classe_marcados:{
+    type: Array,
+    default: () => []
+},
+id_desbravador_marcado:{
+    type: Number,
+    default: 0
+},
+id_classe_marcado:{
+    type: Number,
+    default: 0
+},
+lista_dbv_json:{
+    type:Object,
+    default: () => ({ data: []})
+},
+lista_classe_json:{
+    type:Object,
+    default: () => ({ data: []})
+}
+},
+
     data() {
         return {
             form: {
                 desbravador: 0,
                 classe_id: 0,
-                // itens_marcados:[]
             },
             obj:null,
             origem:'editar',
-                // openSections: [false, false, false,false, false, false, false, false], // controla quais seções estão abertas
                 openSections: [], // controla quais seções estão abertas
                     sections: [
                         {
@@ -25,7 +61,7 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
     },
     computed: {
         modoEdicao() {
-            return !!this.form.id_cantinho;
+            return !!this.form.id_progresso;
         },
         tituloTela() {
             return this.modoEdicao ? 'Editar Unidade' : 'Adicionar Unidade';
@@ -48,13 +84,8 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                 }
     },
     methods: {
-        teste(){
-            // let arrTeste = this.lista_itens_classe_marcados.data.map(t=>t.id_item);
-            // this.itensPreMarcados = arrTeste;
-            
-        },
         preCarregar(){
-            console.log('precarregar: ',this.id_desbravador_marcado);
+            
             if(this.id_desbravador_marcado !== undefined){
                 this.form.desbravador = this.id_desbravador_marcado;
             }
@@ -75,15 +106,12 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
         },
         ajustarDadosSecao(){
              this.itensPreMarcados = null;
-                console.log('lista de itens premarcados:',this.lista_itens_classe_marcados);
-             if( Object.keys(this.lista_itens_classe_marcados).length > 0){
-                 console.log('debucagdo internamente os itens premarcado');
-                 let arrTeste = this.lista_itens_classe_marcados.data.map(t=>t.id_item);
-                 this.itensPreMarcados = arrTeste;
-             }
 
-             console.log('itens marcados setados no itenspremarcados',this.itensPreMarcados);
-            const mapaGrupos = new Map([
+             if(Array.isArray(this.lista_itens_classe_marcados) && this.lista_itens_classe_marcados.length >0){
+                this.itensPreMarcados = this.lista_itens_classe_marcados.map(t => t.id_item);
+             }   
+
+           const mapaGrupos = new Map([
                         ['DE', 'Desenvolvimento_espiritual'],
                         ['SO', 'Servindo_a_outros'],
                         ['SAF', 'Saude_aptidao_fisica'],
@@ -93,9 +121,10 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                         ['OL', 'Organizacao_e_lideranca'],
                         ['EV', 'Estilo_de_vida']
                     ]);
-                    console.log('dados vindo',this.lista_itens_classe.data);
-                    if(this.lista_itens_classe.data === null){
-                        throw new Error('a variavel não existe ou está vazia!');
+
+                    if(!this.lista_itens_classe?.data){
+                        console.error('listra lista_itens_classe inválida');
+                        return;
                     }
               
                     const arr_agrupados = this.lista_itens_classe.data.reduce((acc,item) =>{
@@ -119,8 +148,6 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                     this.sections = formatado;
         },
         formatarArraySecction(data,idsParaMarcar=[]){
-            /*ALTERAR ESSE AQUI!*/
-            console.log('idsparamarca:',idsParaMarcar);
             let arr = {};
             if(idsParaMarcar !== null ){
                 arr = Object.keys(data).map(key => {
@@ -130,7 +157,6 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                         items: data[key].items.map(item=>({
                             id:item.id,
                             text: item.item,
-                            //checked: false
                             checked: idsParaMarcar.includes(item.id)
                         }))
                     };
@@ -145,7 +171,6 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                             id:item.id,
                             text: item.item,
                             checked: false
-                            // checked: idsParaMarcar.includes(item.id)
                         }))
                     };
                 });
@@ -153,21 +178,9 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
             return arr; 
         },
         toggleSection(index) {
-                    this.openSections[index] = !this.openSections[index];
+                    this.openSections = this.openSections.map((v,i) => i === index ? !v : v);
                 },
-        validarFormulario() {
-            // if (!this.form.desbravador.trim()) {
-            //     alert('O nome da unidade é obrigatório!');
-            //     return false;
-            // }
-            return true;
-        },
         salvarFormulario() {
-            // if (this.validarFormulario()) {
-            //     this.$emit('salvar', { ...this.form });
-            // }
-            // if(this.validarFormulario()) return;
-
             const itensMarcados = [];
 
             this.sections.forEach(section => {
@@ -184,7 +197,6 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                 origem:this.origem
             };
             
-            console.log('payload para salvar',payload);
             this.$emit('salvar', payload);
         },
         cancelar() {
@@ -193,24 +205,13 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
             }
         },
         toggle(campo) {
-            console.log('campo:',campo);
             this.form[campo] = !this.form[campo]
-            console.log(this.ligado ? 'Ligado' : 'Desligado')
-        },
-        montarFormulario(obj){
-           
-            // this.form.id_cantinho = obj.id;
-          
         }
     },
     mounted() {
       this.preCarregar();
-      this.ajustarDadosSecao()
-    },
-    watch: {
-        // Opcional: logar progresso sempre que mudar
-        checkedCount(newVal) {
-            console.log(`Progresso atual: ${newVal}/${this.totalItems} (${this.progress}%)`);}
+      this.ajustarDadosSecao();
+            this.openSections = new Array(this.sections.length).fill(false);
     },
     template: `
  <div class="container mt-4" v-if="form">
@@ -271,7 +272,7 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                                     <select 
                                         class="form-control form-control-lg"
                                         v-model="form.desbravador" 
-                                        requied>
+                                        required>
                                             <option value="" selected >Escolha o Desbravador</option>
                                             <option  v-for="(dbv,index) in lista_dbv_json.data" :key="index" :value="dbv.id_desbravador" > 
                                                 {{dbv.nome_completo}}
@@ -294,9 +295,9 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                                     <select 
                                         class="form-control form-control-lg"
                                         v-model="form.classe_id" 
-                                        requied>
+                                        required>
                                             <option value="" selected >Escolha a Classe</option>
-                                            <option v-for="(clss,index) in lista_classe_json.data" :value="clss.id"> 
+                                            <option v-for="(clss,index) in lista_classe_json.data" :value="clss.id" :key="clss.id"> 
                                               {{clss.nome}}  
                                             </option>
                                     </select>
@@ -304,7 +305,6 @@ props: ['objeto', 'salvando','lista_desbravadores','lista_itens_classe','lista_i
                             </div>
                         </div>
                     </div>
-                  {{objeto}}
                     <!-- Accordion -->
                     <div class="accordion accordion-flush shadow-sm" id="accordionChecklist">
 
