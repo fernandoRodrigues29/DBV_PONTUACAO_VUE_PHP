@@ -1,3 +1,4 @@
+import grupos from './grupos.js';
 export default {
 props: {
     objeto:{
@@ -97,10 +98,8 @@ lista_classe_json:{
             if(this.objeto.id_progresso !== undefined){
                 this.form.id_progresso = this.objeto.id_progresso;
             }
-            
-            
             if(Object.keys(this.objeto).length === 0 ){
-                this.origem = 'cadastar';
+                this.origem = 'cadastrar';
             }
             
         },
@@ -111,17 +110,8 @@ lista_classe_json:{
                 this.itensPreMarcados = this.lista_itens_classe_marcados.map(t => t.id_item);
              }   
 
-           const mapaGrupos = new Map([
-                        ['DE', 'Desenvolvimento_espiritual'],
-                        ['SO', 'Servindo_a_outros'],
-                        ['SAF', 'Saude_aptidao_fisica'],
-                        ['EN', 'Estudo_da_natureza'],
-                        ['AA', 'Arte_de_acampar'],
-                        ['DA', 'Desenvolvendo_a_amizade'],
-                        ['OL', 'Organizacao_e_lideranca'],
-                        ['EV', 'Estilo_de_vida']
-                    ]);
-
+           const mapaGrupos = grupos;
+      
                     if(!this.lista_itens_classe?.data){
                         console.error('listra lista_itens_classe inválida');
                         return;
@@ -178,8 +168,8 @@ lista_classe_json:{
             return arr; 
         },
         toggleSection(index) {
-                    this.openSections = this.openSections.map((v,i) => i === index ? !v : v);
-                },
+           this.openSections[index] = !this.openSections[index];
+        },
         salvarFormulario() {
             const itensMarcados = [];
 
@@ -199,19 +189,34 @@ lista_classe_json:{
             
             this.$emit('salvar', payload);
         },
+        abrirModalCancelar(){
+            this._modalCancelar?.show();
+        },
         cancelar() {
-            if (confirm('Deseja realmente cancelar? As alterações serão perdidas.')) {
-                this.$emit('voltar');
-            }
+             this._modalCancelar?.hide();
+            this.$emit('voltar');
         },
         toggle(campo) {
             this.form[campo] = !this.form[campo]
         }
     },
+    watch:{
+        lista_itens_classe_marcados(){
+            this.ajustarDadosSecao();
+            this.openSections = new Array(this.sections.length).fill(false);
+        }
+    },
     mounted() {
       this.preCarregar();
       this.ajustarDadosSecao();
-            this.openSections = new Array(this.sections.length).fill(false);
+      this.openSections = new Array(this.sections.length).fill(false);
+       
+        this.$nextTick(()=>{
+            const el = document.getElementById('modalCancelar');
+                if(el){
+                    this._modalCancelar = new bootstrap.Modal(el);
+                }
+        });
     },
     template: `
  <div class="container mt-4" v-if="form">
@@ -234,14 +239,34 @@ lista_classe_json:{
                 <div class="col-md-8 col-lg-6">
                     <div class="card shadow">
                         <div class="card-body p-4">
-                            <form @submit.prevent="salvarFormulario">
+                   
+                    <!-- Modal -->
+                    <div class="modal fade" id="modalCancelar" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirmar cancelamento</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Deseja realmente cancelar? As alterações serão perdidas.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                                    <button type="button" class="btn btn-danger" @click="cancelar">Sim, cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form @submit.prevent="salvarFormulario">
                      
                     <!-- Cabeçalho -->
                     <div class="text-center mb-5">
                         <h1 class="header-title text-primary">✅ Checklist Progresso</h1>
                         <p class="lead text-muted">Feito com Vue 3 + Bootstrap 5</p>
                     </div>
-                    
+
                     <!-- Barra de Progresso -->
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
@@ -340,8 +365,9 @@ lista_classe_json:{
                                     <div class="col-6">
                                         <button 
                                             type="button" 
-                                            @click="cancelar" 
-                                            class="btn btn-secondary btn-lg btn-block">
+                                            class="btn btn-secondary btn-lg btn-block"
+                                            @click="abrirModalCancelar"
+                                        >
                                             <i class="fas fa-times"></i> Cancelar
                                         </button>
                                     </div>

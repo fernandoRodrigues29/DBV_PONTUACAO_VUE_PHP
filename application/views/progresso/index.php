@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desbravadores - Sistema Vue</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body { 
@@ -171,6 +172,31 @@
         </div>
     </transition>
 
+        <div class="modal fade" id="modalExclusao" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmar exclusão</h5>
+                        <button class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Tem certeza que deseja excluir
+                            <strong>{{ objParaExcluir?.nome_desbravador }}</strong>?
+                            Essa ação não pode ser desfeita.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Não
+                        </button>
+                        <button type="button" class="btn btn-danger" @click="executarExclusao">
+                            Sim, excluir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
 </div>
 
 <footer class="bg-dark text-white text-center py-3 mt-5">
@@ -215,7 +241,8 @@ createApp({
             lista_desbravadores_form:[],
             lista_classe_form:[],
             id_classe_marcado:0,
-            id_desbravador_marcado:0
+            id_desbravador_marcado:0,
+            objParaExcluir:null
 
         };
     },
@@ -236,7 +263,6 @@ createApp({
                 //listar desbravadores form
                 const dadosFiltrados =  this.lista_desbravadores_form = await respListarDbv.json();
 
-                // const dadosFiltrados = await respListarDbv.json();
                  this.listar_desbravadores  = dadosFiltrados.data.map(item => ({
                         id_desbravador: item.id_desbravador,
                         nome_completo: item.nome_completo,
@@ -244,7 +270,7 @@ createApp({
                     }));
 
            } catch (error) {
-            console.error('Error [carregar dados]', error);
+            console.error('Erro [carregar dados]', error);
            }
         },
         async carregarDadosFormParaPreencher(id){
@@ -253,33 +279,22 @@ createApp({
         },
         async abrirFormulario(obj=null){
             if(obj){
-                console.log('o que esta sendo enviado ao clickar para aparece o form',obj);
             
                 this.id_desbravador_marcado=obj.id_desbravador;
                 this.id_classe_marcado=obj.id_classe;
 
                 await this.carregarDadosFormParaPreencher(obj.id_desbravador); 
-                console.log('infos marcadas',this.listarItensClasseMarcados);   
                 this.formData = {...obj};
             }
-            console.log('como o objeto está sendo setado:',obj);
             this.telaForm = true;
         },
         voltar(){
             this.telaForm = false;
         },
         async salvar(dados, origem=null){
-            console.log('dados sendo enviado:',dados);
-            // debugger;
             const url = dados.origem == 'editar' ? '<?= site_url('progresso/atualizar') ?>' 
                : '<?= site_url('progresso/inserir') ?>';
-          console.log('url dados enviar',url);
-            // debugger;
           const verbo = dados.origem == 'editar' ? 'PUT' : 'POST';
-            console.log(url);
-            console.log(verbo);
-            console.log(dados);
-            // debugger;
             try {
                     const resp = await fetch(url,{
                         method: verbo,
@@ -291,7 +306,6 @@ createApp({
 
                     const resultado = await resp.json();
                         if(resultado.sucesso){
-                            // alert(resultado.mensagem);
                             this.notyf.success(resultado.mensagem);
                             this.carregarDados();
                                 this.voltar();
@@ -303,43 +317,46 @@ createApp({
 
             } catch (error) {
                 this.notyf.error('problema interno do sistema, analise os logs de erro');
-                console.error('error:',error);
+                console.error('erro:',error);
             }
         },
-        async confirmarExclusao(obj){
-            if(obj){
-                if(confirm(`Tem certeza que dejeza excluir #${obj.nome_desbravador}`)){
-                    try {
-                        const url = '<?= site_url('progresso/deletar') ?>';
-                        const resp = await fetch(url,{
+         confirmarExclusao(obj){
+            if(!obj) return;
+            this.objParaExcluir = obj;
+            this._modalExclusao.show();
+        },
+        async executarExclusao(){
+            this._modalExclusao.hide();
+            if(!this.objParaExcluir) return;
+                try {
+                    const url = '<?=  site_url('progresso/deletar') ?>';
+                    const resp = await fetch(url,{
                         method: 'DELETE',
-                        headers:{
-                            'Content-Type':'application/json'
-                        },
-                        body: JSON.stringify(obj)
+                        headers: { 'Content-Type': 'application/json'},
+                        body: JSON.stringify(this.objParaExcluir)
                     });
-                        const resultado = await resp.json();
-                        console.info('dados enviados',resultado);
+
+                    const resultado = await resp.json();
                         if(resultado.sucesso){
                             this.carregarDados();
-
                             this.notyf.success(resultado.mensagem);
                         }else{
-                            alert(resultado.mensagem);
                             this.notyf.error(resultado.mensagem);
                         }
-                    } catch (error) {
-                        console.error('[error]',error);
-                        this.notyf.error(resultado.mensagem);
-                    }
+                } catch (error) {
+                    console.error('[error]',error);
+                    this.notyf.error('Erro ao Excluir. Tente novamente')
+                } finally{
+                    this.objParaExcluir = null;
                 }
-            }
+
         }
-        
-       
     },
     mounted() {
         this.carregarDados();
+           this._modalExclusao = new bootstrap.Modal(
+                document.getElementById('modalExclusao')
+             );
     },
     created(){
         this.notyf = new Notyf({

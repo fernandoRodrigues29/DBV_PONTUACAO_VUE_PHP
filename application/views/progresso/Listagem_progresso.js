@@ -5,47 +5,25 @@ export default {
     }},
     data(){
         return {
-            name:"Progresso",
-            itemPesquisar:"",
-            tirateima:[]
+            itemPesquisar:""
         }
     },
-    methods: {
-        listarMethod(){
-            if(!this.listar || !this.listar.data || !this.listar.data.length > 0) return [];
-              const textoPesquisar =   this.itemPesquisar.toLowerCase();
-              this.tirateima = this.listar.data.filter(item=>{
-                return item.nome_completo.toLowerCase().includes(textoPesquisar);
-              });
-        }
-              
-    },
-    watch:{
-        listar:{
-            handler(novoValor){
-                if(novoValor && novoValor.data){
-                    console.log('listar pronto',novoValor);
-                 
-                }
-            },
-            immediate: true
-        }
-    },
+    methods: {},
+    watch:{},
     computed:{
         itemsFiltrados(){
             if(!this.listar.data || !this.listar.data.length) return[];
               const textoPesquisar =   this.itemPesquisar.toLowerCase();
-              console.log('arr',this.listar);
-              return this.listar.data.filter(item=>{
-                return item.nome_desbravador.toLowerCase().includes(textoPesquisar);
-              });
+                return this.listar.data.filter(item=>{
+                    return item.nome_desbravador.toLowerCase().includes(textoPesquisar);
+                });
         }
     },
     template:`
         <div class="container mt-4">
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <h1><i class="fas fa-users"></i> {{nome}}</h1>
+                    <h1><i class="fas fa-users"></i> - </h1>
                 </div>
                 <div class="col-md-6 text-right">
                     <button class="btn btn-success" @click="$emit('editar')">
@@ -64,7 +42,8 @@ export default {
                                 placeholder="Buscar por nome...">
                         </div>
                         <div class="col-md-3">
-                            <button  class="btn btn-outline-secondary btn-block">
+                            <button  class="btn btn-outline-secondary btn-block"
+                            @click="itemPesquisar=''">
                                 <i class="fas fa-eraser"></i> Limpar
                             </button>
                         </div>
@@ -85,7 +64,7 @@ export default {
                             
                             <div class="card-text">
                                 <div class="row">
-                                        <span class="col-sm m-2 p-2 badge badge-primary badge-custom">
+                                        <span class="col-sm m-2 p-2 badge bg-primary badge-custom">
                                             <i class="fas fa-flag"></i> {{cantinhoItem.classe}} 
                                         </span>
                                 </div>
