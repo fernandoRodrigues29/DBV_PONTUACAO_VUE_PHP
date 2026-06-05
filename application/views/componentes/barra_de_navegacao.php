@@ -28,6 +28,11 @@
                         <i class="fas fa-trophy"></i> Progresso
                     </a>
                 </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="<?= site_url('graficos') ?>">
+                        <i class="fas fa-charts"></i> Graficos
+                    </a>
+                </li>
             </ul>
         </div>
     </div>

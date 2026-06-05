@@ -105,11 +105,10 @@ lista_classe_json:{
         },
         ajustarDadosSecao(){
              this.itensPreMarcados = null;
-
-             if(Array.isArray(this.lista_itens_classe_marcados) && this.lista_itens_classe_marcados.length >0){
-                this.itensPreMarcados = this.lista_itens_classe_marcados.map(t => t.id_item);
+             if(Array.isArray(this.lista_itens_classe_marcados?.data) && this.lista_itens_classe_marcados?.data.length >0){
+                this.itensPreMarcados = this.lista_itens_classe_marcados.data.map(t => t.id_item);
              }   
-
+            
            const mapaGrupos = grupos;
       
                     if(!this.lista_itens_classe?.data){
