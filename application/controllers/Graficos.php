@@ -5,14 +5,14 @@ class Graficos extends CI_Controller{
 
  public function __construct() {
         parent::__construct();
-        $this->load->model('Progresso_model');
+        $this->load->model('Graficos_model');
         $this->load->model('Itens_classe_model');
         $this->load->library('form_validation');
     }
 
     public function index() {
         
-        $data['pontuacao'] = $this->Progresso_model->get_all();
+        $data['pontuacao'] = $this->Graficos_model->get_all();
         $data['title'] = 'Gerenciar Progresso';
         $this->load->view('graficos/index', $data);
 
@@ -21,7 +21,7 @@ class Graficos extends CI_Controller{
     
     public function listar_json(){
         /*trocar*/
-         $arr = $this->Progresso_model->get_all();
+         $arr = $this->Graficos_model->get_all();
             $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode([
@@ -29,6 +29,40 @@ class Graficos extends CI_Controller{
                 'data'=>$arr
             ]));
     }
+    
+    public function listar_classes_ativas(){
+        /*trocar*/
+         $arr = $this->Graficos_model->classes_ativas();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }
+    
+    public function listar_progresso_unidade(){
+        
+         $arr = $this->Graficos_model->medir_progresso();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }
+
+public function listar_progresso_dados(){
+  
+    $arr = $this->Graficos_model->medir_progresso();
+    $this->output
+    ->set_content_type('application/json')
+    ->set_output(json_encode([
+        'success'=>true,
+        'data'=>$arr
+    ]));
+
+}
 
     public function listar_itens_classe_json(){
         /*trocar*/
@@ -37,7 +71,7 @@ class Graficos extends CI_Controller{
             $idget = intval($_GET['id']);
         }
 
-         $arr = $this->Progresso_model->get_by_id($idget);
+         $arr = $this->Graficos_model->get_by_id($idget);
             $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode([
@@ -45,13 +79,14 @@ class Graficos extends CI_Controller{
                 'data'=>$arr
             ]));
     }
+
     public function listar_itens_marcados_por_dbv_json(){
         $id=0;
         if(isset($_GET['id'])){
             $id = intval($_GET['id']);
         }
 
-         $arr = $this->Progresso_model->get_itens_marcados_por_id($id);
+         $arr = $this->Graficos_model->get_itens_marcados_por_id($id);
             $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode([
@@ -113,7 +148,7 @@ class Graficos extends CI_Controller{
             ];
             
             //enviar para a model
-            $this->Progresso_model->insert($data);
+            $this->Graficos_model->insert($data);
             //output resultado
             $msg='Dados processados com sucesso';
             $this->enviarMsgSucesso($msg);
@@ -177,7 +212,7 @@ class Graficos extends CI_Controller{
 
 
                     //atualizar
-                    // $retorno = $this->Progresso_model->update($id_cantinho, $data);
+                    // $retorno = $this->Graficos_model->update($id_cantinho, $data);
                     //     $resposta = ['sucesso'=>true,'mensagem'=>'Atualizado com sucesso'];
                     //         if(!$retorno){
 
@@ -201,7 +236,7 @@ class Graficos extends CI_Controller{
                                 ];
                                 
                                 //enviar para a model
-                                $this->Progresso_model->insert($data);
+                                $this->Graficos_model->insert($data);
                                 //output resultado
                                 $msg='Dados processados com sucesso';
                                 $this->enviarMsgSucesso($msg);
