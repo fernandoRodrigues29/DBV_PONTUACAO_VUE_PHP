@@ -30,6 +30,17 @@ class Graficos extends CI_Controller{
             ]));
     }
     
+    public function listar_total_dbv(){
+        /*trocar*/
+         $arr = $this->Graficos_model->get_total_dbv();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }    
+
     public function listar_classes_ativas(){
         /*trocar*/
          $arr = $this->Graficos_model->classes_ativas();
@@ -40,6 +51,61 @@ class Graficos extends CI_Controller{
                 'data'=>$arr
             ]));
     }
+    
+    public function unidade_destaque(){
+        /*trocar*/
+         $arr = $this->Graficos_model->unidade_destaque();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }
+    
+    public function medir_progresso(){
+        /*trocar*/
+         $arr = $this->Graficos_model->medir_progresso_0();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }
+    public function evolucao_geral(){
+        /*trocar*/
+         $arr = $this->Graficos_model->evolucao_geral();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }
+    
+    public function destaque_mes(){
+        /*trocar*/
+         $arr = $this->Graficos_model->destaque_mes();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }
+    
+    public function atrasados_mes(){
+        /*trocar*/
+         $arr = $this->Graficos_model->atrasados_mes();
+            $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success'=>true,
+                'data'=>$arr
+            ]));
+    }
+
     
     public function listar_progresso_unidade(){
         
@@ -63,6 +129,7 @@ public function listar_progresso_dados(){
     ]));
 
 }
+
 
     public function listar_itens_classe_json(){
         /*trocar*/

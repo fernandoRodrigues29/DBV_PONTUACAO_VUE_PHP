@@ -262,6 +262,7 @@ require_once('./application/views/componentes/barra_de_navegacao.php');
         </div>
 
         <!-- KPIs -->
+         {{total_desbravadores}}
         <div class="row g-3 mb-4">
             <div class="col-xl-3 col-md-6 fade-in" v-for="kpi in kpis" :key="kpi.label">
                 <div class="kpi-card">
@@ -346,12 +347,14 @@ const { createApp, onMounted } = Vue;
 createApp({
     data() {
         return {
+            chart1:null,
+            chart2:null,
             mesAtual: 'Junho 2026',
 
             kpis: [
                 {
                     label: 'Total de Desbravadores',
-                    valor: '248',
+                    valor: this.total_desbravadores,
                     color: '#2563eb',
                     iconBg: '#eff6ff',
                     icon: 'fas fa-users',
@@ -400,7 +403,10 @@ createApp({
             atrasados: [
                 { nome: 'Miguel Santos',    classe: 'Amigo',       pct: 28, badgeBg: '#dc2626' },
                 { nome: 'Isabela Ferreira', classe: 'Companheiro', pct: 41, badgeBg: '#d97706' }
-            ]
+            ],
+
+            total_desbravadores:0
+
         };
     },
 
@@ -414,7 +420,7 @@ createApp({
         initCharts() {
             // Gráfico de Linha
             const ctx1 = document.getElementById('evolucaoChart');
-            new Chart(ctx1, {
+            this.chart1 = new Chart(ctx1, {
                 type: 'line',
                 data: {
                     labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
@@ -450,7 +456,7 @@ createApp({
 
             // Gráfico Donut
             const ctx2 = document.getElementById('donutChart');
-            new Chart(ctx2, {
+            this.chart2 = new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
                     labels: ['Amigo', 'Companheiro', 'Pesquisador', 'Pioneiro', 'Guia'],
@@ -473,13 +479,79 @@ createApp({
                     }
                 }
             });
+        },
+       async urlApi(endpoint){
+            const urlBase = '<?=  site_url() ?>';
+                const urlFinal = `${urlBase}/${endpoint}`;
+                    const resposta = await fetch(urlFinal);
+            
+                        return await resposta.json();
+       },
+       async carregarDados(){
+           try {
+                //total desbravadores
+                let info = await this.urlApi('graficos/listar_total_dbv');
+                  this.total_desbravadores = info.data[0].qtd;
+                    this.kpis[0].valor = this.total_desbravadores;
+                //total media progresso
+                let medirProgresso = await this.urlApi('graficos/medir_progresso');
+                this.kpis[1].valor = medirProgresso.data.valor;
+                //classes ativas
+                let classesAtivas = await this.urlApi('graficos/listar_classes_ativas');
+                this.kpis[2].valor = classesAtivas.data[0].qtd;
+                //unidade destaques
+                let unidadeDestaques = await this.urlApi('graficos/unidade_destaque');
+                this.kpis[3].valor = unidadeDestaques.data[0].unidade;
+                //evolucao geral
+                let progressoGeral = await this.urlApi('graficos/evolucao_geral');
+                const labels = progressoGeral.data.map(item=>item.mes);
+                const valores = progressoGeral.data.map(item=>Number(item.valor));
+                 //resolver depois   
+                //  chart1.data.labels= labels;
+                //  chart1.data.datasets[0].data = valores;
+                //  chart1.update(); 
+                //destaque
+                let destaqueMes = await this.urlApi('graficos/destaque_mes');
+                destaqueMes.data.map(item=>item.mes) 
+
+                const rsDestaqueMes =  destaqueMes.data.map(item=>({
+                    nome :item.desbravador,
+                    classe:'Atalaia',
+                    pct:item.porcentagem,
+                    badgeBg: '#dcfce7',
+                    badgeColor: '#15803d'
+                })); 
+                this.destaques = rsDestaqueMes;
+                //atraso
+                let atrasoMes = await this.urlApi('graficos/atrasados_mes');
+               /*
+                { nome: 'Miguel Santos',    classe: 'Amigo',       pct: 28, badgeBg: '#dc2626' },
+               */
+                const rsAtrasoMes =  atrasoMes.data.map(item=>({
+                    nome :item.desbravador,
+                    classe:' - ',
+                    pct:item.porcentagem,
+                    badgeBg: '#dc2626'
+                })); 
+                this.atrasados = rsAtrasoMes;
+
+              
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error)
+            }    
+       
         }
     },
 
     mounted() {
+        //carregar dados
+       
         this.$nextTick(() => {
             this.initCharts();
         });
+         this.carregarDados();
+        
     }
 
 }).mount('#app');

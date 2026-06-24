@@ -23,7 +23,7 @@ class Graficos_model extends CI_Model {
     
     */
     public function get_total_dbv(){
-        $this->db->select('select count(*) as qtd');
+        $this->db->select('count(*) as qtd');
          $this->db->from('desbravadores');
             $query = $this->db->get();
                 $result = $query->result();
@@ -62,6 +62,12 @@ class Graficos_model extends CI_Model {
         //MOKADO
         return [['unidade'=>'Atalaia','porcentagem'=>'82']];
     }
+    
+    public function medir_progresso_0(){
+        //MOKADO
+        return ['valor'=>'45'];
+    }
+
     public function evolucao_geral(){
         //MOKADO
         return [
